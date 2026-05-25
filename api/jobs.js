@@ -21,6 +21,8 @@ module.exports = async function handler(req, res) {
       query: query.q || "",
       industry: query.industry || "all",
       function: query.function || "all",
+      originRegion: query.originRegion || "all",
+      postedWithin: query.postedWithin || "all",
       minScore: query.minScore || 35,
       priority: query.priority || "all",
       company: query.company || "",

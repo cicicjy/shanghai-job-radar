@@ -28,12 +28,26 @@ function formatTime(value) {
   }).format(new Date(value));
 }
 
+function formatPostedDate(value) {
+  if (!value) return "未抓到";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
 function getFilters() {
   const data = new FormData(form);
   return new URLSearchParams({
     q: data.get("q") || "",
+    company: data.get("company") || "",
     industry: data.get("industry") || "all",
     function: data.get("function") || "all",
+    originRegion: data.get("originRegion") || "all",
+    postedWithin: data.get("postedWithin") || "all",
     priority: data.get("priority") || "all",
     minScore: data.get("minScore") || "35",
   });
@@ -73,6 +87,13 @@ function compactText(text, maxLength = 260) {
   return `${value.slice(0, maxLength - 1)}…`;
 }
 
+function jdTextFor(job) {
+  const fallback = "官网没有返回可读的 JD 正文，建议直接打开官网具体岗位查看完整原文。";
+  const value = String(job.description || "").replace(/\s+/g, " ").trim();
+  if (!value || /href|class|system-path|main-menu|node\/\d+|data-[a-z-]+/i.test(value)) return fallback;
+  return value;
+}
+
 function renderJobs(jobs, meta) {
   feed.innerHTML = "";
   if (!jobs.length) {
@@ -88,20 +109,26 @@ function renderJobs(jobs, meta) {
     const fragment = template.content.cloneNode(true);
     fragment.querySelector("[data-score]").textContent = `${job.match.score}%`;
     fragment.querySelector("[data-score-label]").textContent = job.match.label;
-    fragment.querySelector("[data-company]").textContent = job.company;
+    const company = fragment.querySelector("[data-company]");
+    company.textContent = job.company;
+    company.href = job.careersUrl || job.sourceUrl || job.url;
+    fragment.querySelector("[data-origin]").textContent = `${job.originCountry || "未标注"}企业`;
     fragment.querySelector("[data-industry]").textContent = job.industry;
     fragment.querySelector("[data-location]").textContent = job.location;
+    const postedLabel = formatPostedDate(job.datePosted);
+    fragment.querySelector("[data-posted]").textContent = `发布：${postedLabel}`;
     const title = fragment.querySelector("[data-title]");
     title.textContent = job.title;
     title.href = job.url;
     fragment.querySelector("[data-department]").textContent = job.department;
     fragment.querySelector("[data-experience]").textContent = job.match.experience?.label || "未明确";
+    fragment.querySelector("[data-date-posted]").textContent = postedLabel;
     fragment.querySelector("[data-source-type]").textContent = sourceLabel(job.sourceType);
     const skills = fragment.querySelector("[data-skills]");
     const skillItems = job.match.skills?.length ? job.match.skills : ["官网未抓到明确技能"];
     skillItems.forEach((skill) => skills.append(createChip(skill)));
     fragment.querySelector("[data-reasons]").textContent = `匹配点：${(job.match.reasons || []).join("、") || "岗位方向相关"}`;
-    const jdText = job.description || "官网未返回可解析的岗位摘要。";
+    const jdText = jdTextFor(job);
     fragment.querySelector("[data-description]").textContent = compactText(jdText, 220);
     fragment.querySelector("[data-jd]").textContent = jdText;
     const apply = fragment.querySelector("[data-apply]");

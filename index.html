@@ -41,6 +41,10 @@
             <input name="q" type="search" placeholder="品牌、电商、小红书、innovation..." autocomplete="off" />
           </label>
           <label>
+            <span>公司</span>
+            <input name="company" type="search" placeholder="欧莱雅 / Ferrero / PUMA..." autocomplete="off" />
+          </label>
+          <label>
             <span>行业</span>
             <select name="industry">
               <option value="all">全部行业</option>
@@ -64,7 +68,28 @@
             </select>
           </label>
           <label>
-            <span>公司优先级</span>
+            <span>企业来源地区</span>
+            <select name="originRegion">
+              <option value="all">全部地区</option>
+              <option value="欧美">欧美</option>
+              <option value="日本">日本</option>
+              <option value="韩国">韩国</option>
+              <option value="大中华">大中华</option>
+              <option value="大洋洲">大洋洲</option>
+              <option value="其他">其他</option>
+            </select>
+          </label>
+          <label>
+            <span>发布时间</span>
+            <select name="postedWithin">
+              <option value="all">全部时间</option>
+              <option value="7">1 周内</option>
+              <option value="30">1 个月内</option>
+              <option value="90">3 个月内</option>
+            </select>
+          </label>
+          <label>
+            <span>优先级</span>
             <select name="priority">
               <option value="all">全部公司</option>
               <option value="A">重点公司</option>
@@ -153,10 +178,17 @@
           <span data-score-label></span>
         </div>
         <div class="job-main">
+          <div class="company-head">
+            <div>
+              <span class="company-eyebrow">招聘企业</span>
+              <a class="company-name" data-company target="_blank" rel="noreferrer"></a>
+            </div>
+            <span class="origin-badge" data-origin></span>
+          </div>
           <div class="job-topline">
-            <span data-company></span>
             <span data-industry></span>
             <span data-location></span>
+            <span data-posted></span>
           </div>
           <h3><a data-title target="_blank" rel="noreferrer"></a></h3>
           <div class="job-highlights">
@@ -169,6 +201,10 @@
               <strong data-experience></strong>
             </div>
             <div>
+              <span>发布时间</span>
+              <strong data-date-posted></strong>
+            </div>
+            <div>
               <span>来源</span>
               <strong data-source-type></strong>
             </div>
@@ -177,7 +213,7 @@
           <p class="match-reasons" data-reasons></p>
           <p class="job-description" data-description></p>
           <details class="jd-panel">
-            <summary>展开 JD 摘要</summary>
+            <summary>查看清洗后的 JD 摘要</summary>
             <div data-jd></div>
           </details>
           <div class="job-actions">

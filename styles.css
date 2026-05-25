@@ -203,7 +203,7 @@ h3 {
 
 .filters {
   display: grid;
-  grid-template-columns: minmax(200px, 1.2fr) repeat(3, minmax(128px, 0.7fr));
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
   gap: 12px;
   align-content: start;
   border: 1px solid var(--line);
@@ -245,6 +245,10 @@ h3 {
 
 .score-filter {
   grid-column: span 2;
+}
+
+.refresh-button {
+  align-self: end;
 }
 
 .score-filter input {
@@ -493,8 +497,47 @@ code {
   padding: 3px 8px;
 }
 
-.job-main h3 a {
+.company-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 9px;
+}
+
+.company-eyebrow {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.company-name {
+  display: inline-block;
   color: var(--ink);
+  font-size: 24px;
+  font-weight: 950;
+  line-height: 1.15;
+}
+
+.company-name:hover {
+  color: var(--teal);
+}
+
+.origin-badge {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #eaf1ff;
+  padding: 5px 10px;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.job-main h3 a {
+  color: var(--teal);
 }
 
 .job-main h3 a:hover {
@@ -503,7 +546,7 @@ code {
 
 .job-highlights {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -654,6 +697,10 @@ code {
   .source-box {
     grid-column: 1 / -1;
   }
+
+  .filters {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
 }
 
 @media (max-width: 760px) {
@@ -687,6 +734,10 @@ code {
     grid-template-columns: auto 1fr;
     align-items: end;
     min-height: 0;
+  }
+
+  .company-head {
+    flex-direction: column;
   }
 
   .job-highlights {
