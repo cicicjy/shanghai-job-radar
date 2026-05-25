@@ -30,7 +30,7 @@ npm start
 
 ## Vercel Cron
 
-`vercel.json` 已配置 `/api/check-jobs` 每 15 分钟触发一次。要让 Vercel Cron 记住历史岗位，需要配置 KV：
+Hobby 账户的 Vercel Cron 不能 15 分钟运行一次，所以默认不启用 Vercel Cron；15 分钟新岗位提醒使用 GitHub Actions。若以后升级 Vercel Pro，可以在 `vercel.json` 里重新启用 `/api/check-jobs` 定时触发。要让 Vercel Cron 记住历史岗位，需要配置 KV：
 
 - `KV_REST_API_URL`
 - `KV_REST_API_TOKEN`
