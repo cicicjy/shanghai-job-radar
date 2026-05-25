@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="900" viewBox="0 0 760 900" role="img" aria-label="睡前香氛概念占位图">
+  <rect width="760" height="900" fill="#253135"/>
+  <rect x="76" y="92" width="608" height="716" rx="8" fill="#f7f3e8"/>
+  <rect x="130" y="152" width="500" height="230" rx="8" fill="#dceff4"/>
+  <path d="M244 702 C300 538 460 538 516 702Z" fill="#f3a6b1"/>
+  <rect x="270" y="404" width="220" height="302" rx="110" fill="#f4d8dc"/>
+  <rect x="330" y="326" width="100" height="110" rx="20" fill="#c95865"/>
+  <circle cx="380" cy="552" r="58" fill="#ffffff" opacity=".75"/>
+  <path d="M190 458 C222 414 260 414 292 458 C260 502 222 502 190 458Z" fill="#87a987"/>
+  <path d="M468 460 C506 408 552 408 590 460 C552 510 506 510 468 460Z" fill="#87a987"/>
+</svg>

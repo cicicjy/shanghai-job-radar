@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500" role="img" aria-label="伦敦春天草地抓拍占位图">
+  <rect width="1200" height="1500" fill="#d7edf5"/>
+  <rect y="440" width="1200" height="1060" fill="#6f916c"/>
+  <rect y="330" width="1200" height="120" fill="#d7c28d"/>
+  <rect x="70" y="170" width="210" height="230" fill="#efe7cf"/>
+  <rect x="90" y="120" width="56" height="60" fill="#efe7cf"/>
+  <rect x="185" y="118" width="56" height="62" fill="#efe7cf"/>
+  <path d="M90 120 L118 72 L146 120 Z" fill="#c9b270"/>
+  <path d="M185 118 L213 70 L241 118 Z" fill="#c9b270"/>
+  <rect x="350" y="235" width="245" height="165" fill="#ca8a68"/>
+  <rect x="640" y="250" width="360" height="150" fill="#d6a27a"/>
+  <g opacity=".72">
+    <circle cx="115" cy="540" r="32" fill="#243133"/>
+    <rect x="94" y="570" width="45" height="82" rx="22" fill="#243133"/>
+    <circle cx="210" cy="555" r="28" fill="#314145"/>
+    <rect x="190" y="582" width="40" height="70" rx="20" fill="#314145"/>
+    <circle cx="900" cy="535" r="30" fill="#263238"/>
+    <rect x="878" y="564" width="44" height="84" rx="22" fill="#263238"/>
+  </g>
+  <g transform="translate(240 930)">
+    <ellipse cx="360" cy="205" rx="350" ry="84" fill="#496b54" opacity=".42"/>
+    <path d="M310 10 C395 0 455 64 455 154 L455 226 L295 226 L295 86 C295 45 294 23 310 10Z" fill="#f2b0b8"/>
+    <circle cx="360" cy="-10" r="58" fill="#e8c3a4"/>
+    <path d="M305 -30 C330 -95 425 -70 420 8 C385 -18 346 0 312 30Z" fill="#a86d50"/>
+    <path d="M80 270 C250 222 410 228 665 283 L650 346 C398 322 226 335 58 333Z" fill="#20292c"/>
+    <path d="M72 288 C110 246 166 236 213 266 C191 300 154 314 86 314Z" fill="#e8c3a4"/>
+    <rect x="532" y="292" width="210" height="42" rx="20" fill="#f1f1ec"/>
+    <rect x="720" y="301" width="96" height="26" rx="13" fill="#e6e2d4"/>
+    <path d="M166 282 C250 182 352 126 430 158" fill="none" stroke="#e8c3a4" stroke-width="32" stroke-linecap="round"/>
+    <path d="M418 154 C462 145 492 164 506 199" fill="none" stroke="#e8c3a4" stroke-width="24" stroke-linecap="round"/>
+  </g>
+  <g opacity=".88">
+    <rect x="120" y="1170" width="140" height="34" rx="9" fill="#e7a147"/>
+    <rect x="278" y="1206" width="118" height="28" rx="8" fill="#f1d784"/>
+    <rect x="450" y="1194" width="92" height="34" rx="8" fill="#2637d5"/>
+  </g>
+</svg>

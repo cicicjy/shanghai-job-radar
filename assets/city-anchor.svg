@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1100" viewBox="0 0 900 1100" role="img" aria-label="城市观察占位图">
+  <rect width="900" height="1100" fill="#bedbe7"/>
+  <rect y="670" width="900" height="430" fill="#243133"/>
+  <rect x="0" y="470" width="900" height="220" fill="#d6b089"/>
+  <circle cx="620" cy="355" r="250" fill="none" stroke="#f8efe1" stroke-width="22"/>
+  <circle cx="620" cy="355" r="170" fill="none" stroke="#f8efe1" stroke-width="9"/>
+  <line x1="620" y1="105" x2="620" y2="605" stroke="#f8efe1" stroke-width="7"/>
+  <line x1="370" y1="355" x2="870" y2="355" stroke="#f8efe1" stroke-width="7"/>
+  <g fill="#2637d5">
+    <circle cx="620" cy="105" r="24"/>
+    <circle cx="870" cy="355" r="24"/>
+    <circle cx="620" cy="605" r="24"/>
+    <circle cx="370" cy="355" r="24"/>
+  </g>
+  <path d="M20 790 C140 698 300 700 445 795 C300 856 140 854 20 790Z" fill="#141b1d"/>
+  <circle cx="210" cy="690" r="54" fill="#141b1d"/>
+  <rect x="158" y="730" width="104" height="190" rx="52" fill="#141b1d"/>
+  <path d="M90 692 L340 692 L320 644 L112 644Z" fill="#141b1d"/>
+  <rect x="96" y="938" width="300" height="34" fill="#496b54"/>
+  <rect x="520" y="762" width="270" height="82" fill="#f3a6b1" opacity=".88"/>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="900" viewBox="0 0 760 900" role="img" aria-label="春天饮料概念占位图">
+  <rect width="760" height="900" fill="#dceff4"/>
+  <rect y="520" width="760" height="380" fill="#7da276"/>
+  <g transform="translate(245 150)">
+    <rect x="0" y="110" width="270" height="520" rx="44" fill="#f3d58c"/>
+    <rect x="82" y="0" width="106" height="150" rx="22" fill="#f0b65c"/>
+    <rect x="44" y="270" width="182" height="146" rx="12" fill="#ffffff" opacity=".9"/>
+    <text x="135" y="328" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="900" fill="#1f2b2f">LIFE</text>
+    <text x="135" y="366" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="900" fill="#1f2b2f">ANCHOR</text>
+  </g>
+  <path d="M94 628 C180 578 300 596 380 552 C460 510 584 528 664 488" fill="none" stroke="#2637d5" stroke-width="16" stroke-linecap="round"/>
+</svg>

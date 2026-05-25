@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="675" viewBox="0 0 900 675" role="img" aria-label="生活方式内容项目占位图">
+  <rect width="900" height="675" fill="#dceff4"/>
+  <rect y="340" width="900" height="335" fill="#7da276"/>
+  <rect y="250" width="900" height="95" fill="#c8b27c"/>
+  <rect x="72" y="110" width="170" height="170" fill="#efe7cf"/>
+  <rect x="290" y="150" width="250" height="130" fill="#c9876e"/>
+  <g transform="translate(260 405)">
+    <ellipse cx="215" cy="152" rx="260" ry="56" fill="#496b54" opacity=".42"/>
+    <path d="M210 0 C272 0 314 48 314 118 L314 172 L194 172 L194 58 C194 24 195 8 210 0Z" fill="#f3a6b1"/>
+    <circle cx="250" cy="-18" r="42" fill="#e2bf9d"/>
+    <path d="M85 210 C205 170 355 178 510 220 L500 270 C330 252 188 258 70 260Z" fill="#1f2b2f"/>
+  </g>
+  <rect x="40" y="40" width="170" height="38" rx="19" fill="#ffffff" opacity=".84"/>
+  <rect x="58" y="54" width="112" height="10" rx="5" fill="#2637d5"/>
+</svg>

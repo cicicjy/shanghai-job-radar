@@ -1,0 +1,44 @@
+name: Shanghai consumer job monitor
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      ALERT_MIN_SCORE: ${{ vars.ALERT_MIN_SCORE || '62' }}
+      SOURCE_LIMIT: ${{ vars.SOURCE_LIMIT || '87' }}
+      SCRAPE_CONCURRENCY: ${{ vars.SCRAPE_CONCURRENCY || '6' }}
+      ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      SERVER_CHAN_SEND_KEY: ${{ secrets.SERVER_CHAN_SEND_KEY }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
+      ALERT_EMAIL_FROM: ${{ secrets.ALERT_EMAIL_FROM }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run official career monitor
+        run: node scripts/monitor-jobs.js
+
+      - name: Persist seen job cache
+        run: |
+          if [[ -n "$(git status --porcelain .job-cache/seen-jobs.json)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .job-cache/seen-jobs.json
+            git commit -m "chore: update seen job cache"
+            git push
+          fi

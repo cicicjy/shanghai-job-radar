@@ -1,0 +1,13 @@
+{
+  "name": "cici-shanghai-job-radar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Realtime official-career monitor for Shanghai consumer, beauty, food and retail roles.",
+  "scripts": {
+    "start": "node server.js",
+    "monitor": "node scripts/monitor-jobs.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
