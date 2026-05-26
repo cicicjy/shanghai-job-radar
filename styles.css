@@ -325,6 +325,20 @@ h3 {
   top: 92px;
   display: grid;
   gap: 16px;
+  max-height: calc(100vh - 116px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+  scrollbar-gutter: stable;
+}
+
+.side-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.side-panel::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(23, 36, 38, 0.18);
 }
 
 .panel-visual {
@@ -487,7 +501,7 @@ code {
 
 .job-card {
   display: grid;
-  grid-template-columns: 92px minmax(0, 1fr);
+  grid-template-columns: 88px minmax(0, 1fr);
   gap: 18px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -541,11 +555,45 @@ code {
 }
 
 .company-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr) auto;
+  align-items: center;
   gap: 12px;
-  margin-bottom: 9px;
+  margin-bottom: 10px;
+}
+
+.company-logo-link {
+  display: grid;
+  overflow: hidden;
+  width: 50px;
+  height: 50px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.company-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 7px;
+}
+
+.company-logo-fallback {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  background: var(--ink);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
+.company-identity {
+  min-width: 0;
 }
 
 .company-eyebrow {
@@ -559,7 +607,7 @@ code {
 .company-name {
   display: inline-block;
   color: var(--ink);
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 950;
   line-height: 1.15;
 }
@@ -579,40 +627,47 @@ code {
   white-space: nowrap;
 }
 
+.job-title {
+  margin-bottom: 8px;
+  font-size: clamp(22px, 2.4vw, 31px);
+  line-height: 1.16;
+}
+
 .job-main h3 a {
-  color: var(--teal);
+  color: var(--ink);
 }
 
 .job-main h3 a:hover {
   color: var(--teal);
 }
 
-.job-highlights {
+.job-meta {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 12px;
 }
 
-.job-highlights div {
+.job-meta div {
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: 7px;
+  background: #fbfcfa;
   padding: 9px;
 }
 
-.job-highlights span,
-.job-highlights strong {
+.job-meta span,
+.job-meta strong {
   display: block;
 }
 
-.job-highlights span {
+.job-meta span {
   color: var(--muted);
   font-size: 11px;
   font-weight: 900;
 }
 
-.job-highlights strong {
+.job-meta strong {
   overflow: hidden;
   margin-top: 2px;
   font-size: 13px;
@@ -620,11 +675,22 @@ code {
   white-space: nowrap;
 }
 
+.tag-group {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.tag-label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+}
+
 .chip-row {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 10px;
 }
 
 .chip {
@@ -660,7 +726,7 @@ code {
   margin-bottom: 12px;
   border: 1px solid var(--line);
   border-radius: 7px;
-  background: #fbfcfa;
+  background: #fff;
 }
 
 .jd-panel summary {
@@ -671,14 +737,38 @@ code {
   font-weight: 900;
 }
 
-.jd-panel div {
-  max-height: 260px;
+.jd-bullet-list {
+  display: grid;
+  gap: 10px;
+  max-height: 340px;
   overflow: auto;
+  margin: 0;
   border-top: 1px solid var(--line);
-  padding: 10px;
-  color: var(--muted);
+  padding: 12px 12px 12px 28px;
+}
+
+.jd-bullet-list li {
+  color: var(--ink);
   font-size: 13px;
-  white-space: pre-wrap;
+}
+
+.jd-original {
+  margin-bottom: 4px;
+}
+
+.jd-translation {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.keyword-mark {
+  border-radius: 4px;
+  background: #fff0bf;
+  padding: 0 3px;
+  color: #6c4700;
+  font-weight: 900;
 }
 
 .job-actions {
@@ -795,6 +885,9 @@ code {
     position: static;
     grid-template-columns: 220px 1fr;
     align-items: start;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
   }
 
   .source-box {
@@ -805,7 +898,7 @@ code {
     grid-template-columns: repeat(2, minmax(160px, 1fr));
   }
 
-  .job-highlights {
+  .job-meta {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
@@ -844,10 +937,16 @@ code {
   }
 
   .company-head {
-    flex-direction: column;
+    grid-template-columns: 46px minmax(0, 1fr);
+    align-items: center;
   }
 
-  .job-highlights {
+  .origin-badge {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .job-meta {
     grid-template-columns: 1fr;
   }
 }

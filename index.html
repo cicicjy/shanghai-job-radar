@@ -46,13 +46,12 @@
               name="q"
               type="search"
               placeholder="品牌 / branding / 电商 / e-commerce..."
-              list="keyword-suggestions"
               autocomplete="off"
             />
           </label>
           <label>
             <span>公司</span>
-            <input name="company" type="search" placeholder="欧莱雅 / Ferrero / PUMA..." list="company-suggestions" autocomplete="off" />
+            <input name="company" type="search" placeholder="欧莱雅 / Ferrero / PUMA..." autocomplete="off" />
           </label>
           <label>
             <span>行业</span>
@@ -63,6 +62,8 @@
               <option value="消费健康">消费健康</option>
               <option value="零售">零售生活方式</option>
               <option value="奢侈">奢侈品</option>
+              <option value="科技">科技互联网</option>
+              <option value="原料">原料 / 香精香料 / 配料</option>
             </select>
           </label>
           <label>
@@ -75,6 +76,7 @@
               <option value="o2o">O2O / E-commerce</option>
               <option value="category">Category / Trade</option>
               <option value="insights">Insights</option>
+              <option value="ingredients">Ingredients / Application</option>
             </select>
           </label>
           <label>
@@ -115,40 +117,6 @@
             <span aria-hidden="true">↻</span>
             <span>刷新</span>
           </button>
-          <datalist id="keyword-suggestions">
-            <option value="品牌 branding"></option>
-            <option value="市场 marketing"></option>
-            <option value="新品 innovation"></option>
-            <option value="NPD new product"></option>
-            <option value="电商 e-commerce"></option>
-            <option value="O2O omnichannel"></option>
-            <option value="小红书 xiaohongshu"></option>
-            <option value="内容 content"></option>
-            <option value="品类 category"></option>
-            <option value="消费者洞察 consumer insight"></option>
-            <option value="上市 launch"></option>
-            <option value="retail media"></option>
-          </datalist>
-          <datalist id="company-suggestions">
-            <option value="欧莱雅 L'Oreal"></option>
-            <option value="雅诗兰黛 Estee Lauder"></option>
-            <option value="资生堂 Shiseido"></option>
-            <option value="汉高 Henkel"></option>
-            <option value="宝洁 P&G"></option>
-            <option value="联合利华 Unilever"></option>
-            <option value="费列罗 Ferrero"></option>
-            <option value="雀巢 Nestle"></option>
-            <option value="玛氏 Mars"></option>
-            <option value="亿滋 Mondelez"></option>
-            <option value="宜家 IKEA"></option>
-            <option value="丝芙兰 Sephora"></option>
-            <option value="PUMA"></option>
-            <option value="Nike"></option>
-            <option value="adidas"></option>
-            <option value="lululemon"></option>
-            <option value="Dyson"></option>
-            <option value="LEGO"></option>
-          </datalist>
         </form>
       </section>
 
@@ -224,23 +192,25 @@
         </div>
         <div class="job-main">
           <div class="company-head">
-            <div>
+            <a class="company-logo-link" data-company-logo-link target="_blank" rel="noreferrer" aria-label="打开公司官网招聘页">
+              <img class="company-logo" data-logo alt="" />
+              <span class="company-logo-fallback" data-logo-fallback aria-hidden="true"></span>
+            </a>
+            <div class="company-identity">
               <span class="company-eyebrow">招聘企业</span>
               <a class="company-name" data-company target="_blank" rel="noreferrer"></a>
             </div>
             <span class="origin-badge" data-origin></span>
           </div>
+          <h3 class="job-title"><a data-title target="_blank" rel="noreferrer"></a></h3>
           <div class="job-topline">
             <span data-industry></span>
             <span data-location></span>
-            <span data-posted></span>
-            <span data-job-id-pill></span>
           </div>
-          <h3><a data-title target="_blank" rel="noreferrer"></a></h3>
-          <div class="job-highlights">
+          <div class="job-meta">
             <div>
-              <span>岗位 ID</span>
-              <strong data-job-id></strong>
+              <span>发布</span>
+              <strong data-date-posted></strong>
             </div>
             <div>
               <span>部门</span>
@@ -251,20 +221,23 @@
               <strong data-experience></strong>
             </div>
             <div>
-              <span>发布时间</span>
-              <strong data-date-posted></strong>
+              <span>岗位 ID</span>
+              <strong data-job-id></strong>
             </div>
             <div>
               <span>来源</span>
               <strong data-source-type></strong>
             </div>
           </div>
-          <div class="chip-row" data-skills></div>
+          <div class="tag-group">
+            <span class="tag-label">技能 / 方向</span>
+            <div class="chip-row" data-skills></div>
+          </div>
           <p class="match-reasons" data-reasons></p>
           <p class="job-description" data-description></p>
           <details class="jd-panel">
-            <summary>查看清洗后的 JD 摘要</summary>
-            <div data-jd></div>
+            <summary>查看 JD bullet 摘要</summary>
+            <ul class="jd-bullet-list" data-jd></ul>
           </details>
           <div class="job-actions">
             <a class="apply-link" data-apply target="_blank" rel="noreferrer">打开官网具体岗位</a>
