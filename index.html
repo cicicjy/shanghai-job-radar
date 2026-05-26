@@ -8,12 +8,16 @@
       name="description"
       content="实时抓取上海消费品、食品饮料、美妆个护、零售外企招聘官网，并筛选 Marketing、Branding、NPD、O2O 等岗位。"
     />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23172426'/%3E%3Ctext x='50%25' y='52%25' dominant-baseline='middle' text-anchor='middle' font-size='36'%3E%F0%9F%92%AB%3C/text%3E%3C/svg%3E"
+    />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <header class="app-header">
       <a class="brand" href="#feed" aria-label="回到岗位流">
-        <span class="brand-mark">CJ</span>
+        <span class="brand-mark">💫</span>
         <span>
           <strong>上海消费零售外企岗位雷达</strong>
           <small>Marketing · Branding · NPD · O2O</small>
@@ -230,9 +234,14 @@
             <span data-industry></span>
             <span data-location></span>
             <span data-posted></span>
+            <span data-job-id-pill></span>
           </div>
           <h3><a data-title target="_blank" rel="noreferrer"></a></h3>
           <div class="job-highlights">
+            <div>
+              <span>岗位 ID</span>
+              <strong data-job-id></strong>
+            </div>
             <div>
               <span>部门</span>
               <strong data-department></strong>
@@ -265,6 +274,7 @@
       </article>
     </template>
 
+    <button class="back-top" type="button" data-back-top aria-label="回到页面顶部">↑</button>
     <script src="script.js"></script>
   </body>
 </html>

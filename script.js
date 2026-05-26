@@ -17,8 +17,40 @@ const stats = {
   sources: document.querySelector('[data-stat="sources"]'),
   errors: document.querySelector('[data-stat="errors"]'),
 };
+const backTopButton = document.querySelector("[data-back-top]");
 
 let progressTimer = null;
+
+const suggestionSets = {
+  q: [
+    "市场 marketing",
+    "品牌 branding",
+    "新品 innovation",
+    "食品新创 food venture",
+    "消费者 consumer engagement",
+    "消费者洞察 consumer insight",
+    "电商 e-commerce",
+    "O2O omnichannel",
+    "品类 category",
+    "小红书 xiaohongshu",
+  ],
+  company: [
+    "百事 PepsiCo",
+    "欧莱雅 L'Oreal",
+    "雅诗兰黛 Estee Lauder",
+    "资生堂 Shiseido",
+    "汉高 Henkel",
+    "宝洁 P&G",
+    "联合利华 Unilever",
+    "费列罗 Ferrero",
+    "雀巢 Nestle",
+    "玛氏 Mars",
+    "宜家 IKEA",
+    "PUMA",
+    "Nike",
+    "adidas",
+  ],
+};
 
 function formatTime(value) {
   if (!value) return "尚未刷新";
@@ -68,6 +100,46 @@ function setStatus(type, text) {
   livePill.textContent = text;
 }
 
+function setupSuggestions() {
+  for (const [name, suggestions] of Object.entries(suggestionSets)) {
+    const input = form.elements[name];
+    if (!input) continue;
+    const box = document.createElement("div");
+    box.className = "suggestion-box";
+    box.hidden = true;
+    input.closest("label").append(box);
+
+    const render = () => {
+      const keyword = input.value.trim().toLowerCase();
+      const matches = suggestions
+        .filter((item) => !keyword || item.toLowerCase().includes(keyword) || item.split(/\s+/).some((part) => part.toLowerCase().startsWith(keyword)))
+        .slice(0, 7);
+      box.innerHTML = "";
+      for (const item of matches) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = item;
+        button.addEventListener("mousedown", (event) => {
+          event.preventDefault();
+          input.value = item;
+          box.hidden = true;
+          loadJobs();
+        });
+        box.append(button);
+      }
+      box.hidden = !matches.length || document.activeElement !== input;
+    };
+
+    input.addEventListener("focus", render);
+    input.addEventListener("input", render);
+    input.addEventListener("blur", () => {
+      window.setTimeout(() => {
+        box.hidden = true;
+      }, 120);
+    });
+  }
+}
+
 function createChip(text) {
   const chip = document.createElement("span");
   chip.className = "chip";
@@ -77,6 +149,8 @@ function createChip(text) {
 
 function sourceLabel(sourceType) {
   const labels = {
+    "official-api": "官方 API",
+    "official-list": "官方列表",
     "official-jsonld": "官方 JD",
     "official-html": "官方页面",
     "official-embedded": "官方职位数据",
@@ -130,9 +204,12 @@ function renderJobs(jobs, meta) {
     fragment.querySelector("[data-location]").textContent = job.location;
     const postedLabel = formatPostedDate(job.datePosted);
     fragment.querySelector("[data-posted]").textContent = `发布：${postedLabel}`;
+    const jobIdLabel = job.jobId ? `ID：${job.jobId}` : "ID：未抓到";
+    fragment.querySelector("[data-job-id-pill]").textContent = jobIdLabel;
     const title = fragment.querySelector("[data-title]");
     title.textContent = job.title;
     title.href = job.url;
+    fragment.querySelector("[data-job-id]").textContent = job.jobId || "未抓到";
     fragment.querySelector("[data-department]").textContent = job.department;
     fragment.querySelector("[data-experience]").textContent = job.match.experience?.label || "未明确";
     fragment.querySelector("[data-date-posted]").textContent = postedLabel;
@@ -274,5 +351,14 @@ form.addEventListener("change", () => {
 
 refreshButton.addEventListener("click", loadJobs);
 
+backTopButton.addEventListener("click", () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+window.addEventListener("scroll", () => {
+  backTopButton.classList.toggle("is-visible", window.scrollY > 520);
+});
+
 window.setInterval(loadJobs, 10 * 60 * 1000);
+setupSuggestions();
 loadJobs();

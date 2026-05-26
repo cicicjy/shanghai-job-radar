@@ -79,7 +79,7 @@ select {
   border-radius: 8px;
   background: var(--ink);
   color: #fff;
-  font-size: 14px;
+  font-size: 22px;
   font-weight: 900;
 }
 
@@ -214,6 +214,7 @@ h3 {
 }
 
 .filters label {
+  position: relative;
   display: grid;
   gap: 6px;
   min-width: 0;
@@ -245,6 +246,38 @@ h3 {
 .filters select:focus {
   border-color: var(--teal);
   box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.13);
+}
+
+.suggestion-box {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  z-index: 30;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.suggestion-box button {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgba(217, 223, 220, 0.72);
+  background: transparent;
+  padding: 9px 11px;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.suggestion-box button:hover {
+  background: var(--surface-2);
+  color: var(--teal);
 }
 
 .score-filter {
@@ -556,7 +589,7 @@ code {
 
 .job-highlights {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -721,6 +754,37 @@ code {
   transition: width 0.45s ease;
 }
 
+.back-top {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 35;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid rgba(23, 36, 38, 0.12);
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.back-top.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
 @media (max-width: 1120px) {
   .control-band,
   .dashboard-grid {
@@ -739,6 +803,10 @@ code {
 
   .filters {
     grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
+
+  .job-highlights {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
