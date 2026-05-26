@@ -414,51 +414,119 @@ function appendHighlightedText(container, text) {
   if (!hasHighlight && !value.length) container.textContent = "";
 }
 
-function translationForBullet(item) {
-  const provided = normalizeBulletText(item.zh);
-  if (provided) return provided.startsWith("中文") ? provided : `中文速读：${provided}`;
-
-  const text = normalizeBulletText(item.text);
-  if (/[\u4e00-\u9fa5]/.test(text)) return `中文速读：${compactText(text, 120)}`;
-
-  const labels = uniqueTextItems(translationHints.filter((hint) => hint.pattern.test(text)).map((hint) => hint.label)).slice(0, 4);
-  const action = /lead|drive|own|manage|负责/i.test(text)
-    ? "负责"
-    : /support|assist|coordinate|协助/i.test(text)
-      ? "支持"
-      : /develop|build|create|design|制定/i.test(text)
-        ? "制定/搭建"
-        : /analy[sz]e|research|insight|洞察/i.test(text)
-          ? "分析"
-          : "关注";
-
-  return `中文速读：${action}${labels.length ? labels.join("、") : "岗位核心职责"}。`;
+function hasReadableChinese(text) {
+  const value = normalizeBulletText(text);
+  const chineseCount = (value.match(/[\u4e00-\u9fa5]/g) || []).length;
+  if (chineseCount < 6) return false;
+  const noisyLatin = (value.match(/[A-Za-z]{3,}/g) || []).filter((word) => !["NPD", "O2O", "CRM", "AFH", "JBP", "KA"].includes(word.toUpperCase()));
+  return noisyLatin.length <= 1;
 }
 
-function renderJdBullets(container, items) {
-  container.innerHTML = "";
+function chineseLabelsFor(text) {
+  return uniqueTextItems(translationHints.filter((hint) => hint.pattern.test(text)).map((hint) => hint.label)).slice(0, 4);
+}
+
+function chineseActionFor(text) {
+  if (/experience|years|degree|english|skill|require|qualification|能力|经验|本科|英语|要求/i.test(text)) return "需要";
+  if (/lead|drive|own|manage|负责|推进|管理/i.test(text)) return "负责";
+  if (/support|assist|coordinate|collaborate|partner|协助|协作/i.test(text)) return "协同推进";
+  if (/develop|build|create|design|制定|搭建|开发/i.test(text)) return "制定";
+  if (/analy[sz]e|research|insight|data|洞察|分析/i.test(text)) return "分析";
+  return "关注";
+}
+
+function chineseSummaryForBullet(item) {
+  const provided = normalizeBulletText(item.zh);
+  if (hasReadableChinese(provided)) return compactText(provided, 96);
+
+  const text = normalizeBulletText(item.text);
+  if (hasReadableChinese(text)) return compactText(text, 96);
+
+  const labels = chineseLabelsFor(text);
+  const topic = labels.length ? labels.join("、") : "岗位核心职责";
+  const action = chineseActionFor(text);
+  if (action === "需要") return `需要${topic}相关经验或能力。`;
+  if (action === "分析") return `分析${topic}相关数据与机会。`;
+  return `${action}${topic}相关工作。`;
+}
+
+function englishSummaryForBullet(item) {
+  const text = normalizeBulletText(item.text);
+  if (!/[A-Za-z]{3,}/.test(text)) return "";
+  return compactText(
+    text
+      .replace(/[\u4e00-\u9fa5]+/g, " ")
+      .replace(/[，。；、：]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim(),
+    180,
+  );
+}
+
+function appendJdSection(container, title, items) {
+  if (!items.length) return;
+  const section = document.createElement("section");
+  section.className = "jd-language-section";
+  const heading = document.createElement("h4");
+  heading.textContent = title;
+  const list = document.createElement("ul");
   for (const item of items) {
     const li = document.createElement("li");
-    const original = document.createElement("p");
-    original.className = "jd-original";
-    appendHighlightedText(original, item.text);
+    appendHighlightedText(li, item);
+    list.append(li);
+  }
+  section.append(heading, list);
+  container.append(section);
+}
 
-    const translation = document.createElement("span");
-    translation.className = "jd-translation";
-    translation.textContent = translationForBullet(item);
+function renderJdSummary(container, items) {
+  container.innerHTML = "";
+  const chineseItems = uniqueTextItems(items.map(chineseSummaryForBullet).filter(Boolean)).slice(0, 5);
+  const englishItems = uniqueTextItems(items.map(englishSummaryForBullet).filter(Boolean)).slice(0, 5);
 
-    li.append(original, translation);
-    container.append(li);
+  appendJdSection(container, "中文总结", chineseItems);
+  appendJdSection(container, "英文重点", englishItems);
+
+  if (!container.children.length) {
+    const note = document.createElement("p");
+    note.className = "jd-empty-note";
+    note.textContent = "官网没有返回可读的 JD 正文，建议直接打开官网具体岗位查看完整原文。";
+    container.append(note);
   }
 }
 
-function companyInitials(company) {
-  const value = String(company || "").trim();
-  const latin = value.match(/[A-Za-z0-9]/g);
-  if (latin?.length) return latin.slice(0, 2).join("").toUpperCase();
+function conciseChineseSummary(items) {
+  const summaries = uniqueTextItems(items.map(chineseSummaryForBullet).filter(Boolean));
+  return compactText(summaries.slice(0, 3).join("；"), 180);
+}
+
+function limitedLabelList(text, maxItems = 2) {
+  return String(text || "")
+    .replace(/O2O\s*\/\s*E-?commerce/gi, "O2O_E-commerce")
+    .replace(/Category\s*\/\s*Trade/gi, "Category_Trade")
+    .replace(/Content\s*\/\s*Social/gi, "Content_Social")
+    .replace(/NPD\s*\/\s*Innovation/gi, "NPD_Innovation")
+    .split("/")
+    .map((item) =>
+      item
+        .trim()
+        .replace(/O2O_E-commerce/g, "O2O / E-commerce")
+        .replace(/Category_Trade/g, "Category / Trade")
+        .replace(/Content_Social/g, "Content / Social")
+        .replace(/NPD_Innovation/g, "NPD / Innovation"),
+    )
+    .filter(Boolean)
+    .slice(0, maxItems)
+    .join(" / ");
+}
+
+function companyLogoText(company) {
+  const value = String(company || "").replace(/\s+/g, " ").trim();
+  const latinWords = value.match(/[A-Za-z][A-Za-z0-9&.'’+-]*/g) || [];
+  if (latinWords.length) return latinWords.slice(0, 2).join(" ");
   const chinese = value.match(/[\u4e00-\u9fa5]/g);
-  if (chinese?.length) return chinese.slice(0, 2).join("");
-  return "企";
+  if (chinese?.length) return chinese.slice(0, 4).join("");
+  return "企业";
 }
 
 function renderCompanyLogo(fragment, job) {
@@ -466,24 +534,66 @@ function renderCompanyLogo(fragment, job) {
   const logo = fragment.querySelector("[data-logo]");
   const fallback = fragment.querySelector("[data-logo-fallback]");
   const href = job.careersUrl || job.sourceUrl || job.url || "#";
+  const candidates = uniqueTextItems([job.logoUrl, ...(job.logoCandidates || [])].filter(Boolean));
+  let index = 0;
 
   logoLink.href = href;
-  fallback.textContent = companyInitials(job.company);
+  fallback.textContent = companyLogoText(job.company);
 
-  if (!job.logoUrl) {
+  const showFallback = () => {
     logo.hidden = true;
     fallback.hidden = false;
+  };
+
+  const loadNextLogo = () => {
+    const src = candidates[index];
+    index += 1;
+    if (!src) {
+      showFallback();
+      return;
+    }
+    fallback.hidden = true;
+    logo.hidden = false;
+    logo.src = src;
+  };
+
+  if (!candidates.length) {
+    showFallback();
     return;
   }
 
-  logo.hidden = false;
-  fallback.hidden = true;
-  logo.src = job.logoUrl;
   logo.alt = `${job.company || "公司"} logo`;
-  logo.addEventListener("error", () => {
-    logo.hidden = true;
-    fallback.hidden = false;
-  });
+  logo.addEventListener("error", loadNextLogo);
+  loadNextLogo();
+}
+
+function simplifyMatchReason(reason) {
+  const value = String(reason || "").replace(/^匹配点[:：]\s*/, "").trim();
+  if (!value || /未抓到|未明确|暂不重扣|关键词较少|官方|官网|发布时间偏久|岗位仍可尝试/i.test(value)) return "";
+  if (/地点匹配上海|base\s*上海/i.test(value)) return "上海";
+  if (/职能偏离|偏离目标方向/i.test(value)) return "职能可能偏离";
+  if (/岗位职级偏高|director|head of|vp/i.test(value)) return "职级偏高";
+  if (/经验要求明显高于|经验要求偏高/i.test(value)) return "经验偏高";
+  if (/经验要求略高/i.test(value)) return "经验略高";
+  if (/经验要求适合|4-5年背景/i.test(value)) return "经验适配";
+  if (/近期|较新/i.test(value)) return "近期发布";
+  if (/职级可冲/i.test(value)) return "职级可冲";
+
+  const direction = value.match(/方向命中\s*(.+)$/i);
+  if (direction) return limitedLabelList(direction[1], 2);
+
+  const skills = value.match(/技能匹配\s*(.+)$/i);
+  if (skills) return limitedLabelList(skills[1], 2);
+
+  const track = value.match(/(.+?)赛道相关/);
+  if (track) return compactText(track[1].replace(/\s*\/\s*/g, "/").trim(), 22);
+
+  return compactText(value, 24);
+}
+
+function simplifiedMatchPoints(job) {
+  const match = job.match || {};
+  return uniqueTextItems([...(match.reasons || []), ...(match.warnings || [])].map(simplifyMatchReason).filter(Boolean)).slice(0, 5);
 }
 
 function tagItemsFor(job) {
@@ -500,7 +610,7 @@ function tagItemsFor(job) {
       .filter((item) => item && !/未抓到|未明确|官方源|官网源/i.test(item)),
   ).slice(0, 10);
 
-  return tags.length ? tags : ["官网未抓到明确技能"];
+  return tags.length ? tags : ["技能待确认"];
 }
 
 function looksMessy(text) {
@@ -554,15 +664,13 @@ function renderJobs(jobs, meta) {
     fragment.querySelector("[data-source-type]").textContent = sourceLabel(job.sourceType);
     const skills = fragment.querySelector("[data-skills]");
     tagItemsFor(job).forEach((skill) => skills.append(createChip(skill)));
-    const warningText = match.warnings?.length ? `｜注意：${match.warnings.join("、")}` : "";
-    fragment.querySelector("[data-reasons]").textContent = `匹配点：${(match.reasons || []).join("、") || "岗位方向相关"}${warningText}`;
     const jdItems = jdSummaryItemsFor(job);
-    fragment.querySelector("[data-description]").textContent = compactText(jdItems.map((item) => translationForBullet(item).replace(/^中文速读：/, "")).join(" / "), 220);
-    renderJdBullets(fragment.querySelector("[data-jd]"), jdItems);
+    const matchPoints = simplifiedMatchPoints(job);
+    fragment.querySelector("[data-insight-match]").textContent = matchPoints.length ? matchPoints.join(" · ") : "岗位方向相关";
+    fragment.querySelector("[data-insight-summary]").textContent = conciseChineseSummary(jdItems);
+    renderJdSummary(fragment.querySelector("[data-jd]"), jdItems);
     const apply = fragment.querySelector("[data-apply]");
     apply.href = job.url || "#";
-    const source = fragment.querySelector("[data-source]");
-    source.href = job.sourceUrl || job.careersUrl || job.url || "#";
     feed.append(fragment);
   }
 

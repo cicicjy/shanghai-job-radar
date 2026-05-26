@@ -233,15 +233,16 @@
             <span class="tag-label">技能 / 方向</span>
             <div class="chip-row" data-skills></div>
           </div>
-          <p class="match-reasons" data-reasons></p>
-          <p class="job-description" data-description></p>
+          <div class="job-insight" data-insight>
+            <p><strong>匹配重点</strong><span data-insight-match></span></p>
+            <p><strong>岗位摘要</strong><span data-insight-summary></span></p>
+          </div>
           <details class="jd-panel">
-            <summary>查看 JD bullet 摘要</summary>
-            <ul class="jd-bullet-list" data-jd></ul>
+            <summary>查看 JD 摘要</summary>
+            <div class="jd-summary-grid" data-jd></div>
           </details>
           <div class="job-actions">
             <a class="apply-link" data-apply target="_blank" rel="noreferrer">打开官网具体岗位</a>
-            <a class="source-link" data-source target="_blank" rel="noreferrer">查看招聘源</a>
           </div>
         </div>
       </article>

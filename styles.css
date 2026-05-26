@@ -565,19 +565,19 @@ code {
 .company-logo-link {
   display: grid;
   overflow: hidden;
-  width: 50px;
-  height: 50px;
+  width: 52px;
+  height: 52px;
   place-items: center;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fff;
+  background: #f8fbf8;
 }
 
 .company-logo {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 7px;
+  padding: 8px;
 }
 
 .company-logo-fallback {
@@ -585,11 +585,16 @@ code {
   width: 100%;
   height: 100%;
   place-items: center;
-  background: var(--ink);
-  color: #fff;
-  font-size: 14px;
+  background:
+    linear-gradient(135deg, rgba(22, 126, 112, 0.12), rgba(255, 244, 228, 0.75));
+  color: var(--ink);
+  font-size: 10px;
   font-weight: 950;
   letter-spacing: 0;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+  padding: 6px;
+  text-align: center;
 }
 
 .company-identity {
@@ -705,21 +710,28 @@ code {
   font-weight: 800;
 }
 
-.match-reasons {
-  margin-bottom: 8px;
-  color: var(--green);
-  font-size: 13px;
-  font-weight: 800;
+.job-insight {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 12px;
+  border-left: 4px solid rgba(22, 126, 112, 0.3);
+  background: #f8fbf8;
+  padding: 10px 12px;
 }
 
-.job-description {
-  display: -webkit-box;
-  overflow: hidden;
-  margin-bottom: 12px;
+.job-insight p {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  gap: 9px;
+  margin: 0;
   color: var(--muted);
   font-size: 13px;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  line-height: 1.45;
+}
+
+.job-insight strong {
+  color: var(--green);
+  font-weight: 950;
 }
 
 .jd-panel {
@@ -737,30 +749,43 @@ code {
   font-weight: 900;
 }
 
-.jd-bullet-list {
+.jd-summary-grid {
   display: grid;
-  gap: 10px;
+  gap: 14px;
   max-height: 340px;
   overflow: auto;
   margin: 0;
   border-top: 1px solid var(--line);
-  padding: 12px 12px 12px 28px;
+  padding: 12px;
 }
 
-.jd-bullet-list li {
+.jd-language-section {
+  display: grid;
+  gap: 7px;
+}
+
+.jd-language-section h4 {
+  margin: 0;
   color: var(--ink);
   font-size: 13px;
 }
 
-.jd-original {
-  margin-bottom: 4px;
+.jd-language-section ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding-left: 20px;
 }
 
-.jd-translation {
-  display: block;
-  color: var(--muted);
-  font-size: 12px;
+.jd-language-section li {
+  color: var(--ink);
+  font-size: 13px;
   line-height: 1.45;
+}
+
+.jd-empty-note {
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .keyword-mark {
@@ -777,8 +802,7 @@ code {
   gap: 9px;
 }
 
-.apply-link,
-.source-link {
+.apply-link {
   display: inline-flex;
   align-items: center;
   min-height: 34px;
@@ -791,11 +815,6 @@ code {
 .apply-link {
   background: var(--teal);
   color: #fff;
-}
-
-.source-link {
-  border: 1px solid var(--line);
-  color: var(--blue);
 }
 
 .empty-state,
