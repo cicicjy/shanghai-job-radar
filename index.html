@@ -38,11 +38,17 @@
         <form class="filters" data-filters>
           <label>
             <span>关键词</span>
-            <input name="q" type="search" placeholder="品牌、电商、小红书、innovation..." autocomplete="off" />
+            <input
+              name="q"
+              type="search"
+              placeholder="品牌 / branding / 电商 / e-commerce..."
+              list="keyword-suggestions"
+              autocomplete="off"
+            />
           </label>
           <label>
             <span>公司</span>
-            <input name="company" type="search" placeholder="欧莱雅 / Ferrero / PUMA..." autocomplete="off" />
+            <input name="company" type="search" placeholder="欧莱雅 / Ferrero / PUMA..." list="company-suggestions" autocomplete="off" />
           </label>
           <label>
             <span>行业</span>
@@ -105,6 +111,40 @@
             <span aria-hidden="true">↻</span>
             <span>刷新</span>
           </button>
+          <datalist id="keyword-suggestions">
+            <option value="品牌 branding"></option>
+            <option value="市场 marketing"></option>
+            <option value="新品 innovation"></option>
+            <option value="NPD new product"></option>
+            <option value="电商 e-commerce"></option>
+            <option value="O2O omnichannel"></option>
+            <option value="小红书 xiaohongshu"></option>
+            <option value="内容 content"></option>
+            <option value="品类 category"></option>
+            <option value="消费者洞察 consumer insight"></option>
+            <option value="上市 launch"></option>
+            <option value="retail media"></option>
+          </datalist>
+          <datalist id="company-suggestions">
+            <option value="欧莱雅 L'Oreal"></option>
+            <option value="雅诗兰黛 Estee Lauder"></option>
+            <option value="资生堂 Shiseido"></option>
+            <option value="汉高 Henkel"></option>
+            <option value="宝洁 P&G"></option>
+            <option value="联合利华 Unilever"></option>
+            <option value="费列罗 Ferrero"></option>
+            <option value="雀巢 Nestle"></option>
+            <option value="玛氏 Mars"></option>
+            <option value="亿滋 Mondelez"></option>
+            <option value="宜家 IKEA"></option>
+            <option value="丝芙兰 Sephora"></option>
+            <option value="PUMA"></option>
+            <option value="Nike"></option>
+            <option value="adidas"></option>
+            <option value="lululemon"></option>
+            <option value="Dyson"></option>
+            <option value="LEGO"></option>
+          </datalist>
         </form>
       </section>
 
@@ -163,6 +203,7 @@
             <div>
               <p class="kicker">Live Feed</p>
               <h2>岗位信息流</h2>
+              <p class="ranking-note" data-ranking-note>排序：匹配度优先，并穿插不同公司。</p>
             </div>
           <p class="timestamp" data-timestamp>尚未连接实时接口</p>
           </div>

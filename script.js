@@ -11,11 +11,14 @@ const livePill = document.querySelector("[data-live-pill]");
 const minScoreOutput = document.querySelector("[data-min-score]");
 const timestamp = document.querySelector("[data-timestamp]");
 const sourceList = document.querySelector("[data-source-list]");
+const rankingNote = document.querySelector("[data-ranking-note]");
 const stats = {
   jobs: document.querySelector('[data-stat="jobs"]'),
   sources: document.querySelector('[data-stat="sources"]'),
   errors: document.querySelector('[data-stat="errors"]'),
 };
+
+let progressTimer = null;
 
 function formatTime(value) {
   if (!value) return "尚未刷新";
@@ -87,10 +90,20 @@ function compactText(text, maxLength = 260) {
   return `${value.slice(0, maxLength - 1)}…`;
 }
 
+function looksMessy(text) {
+  const value = String(text || "");
+  if (!value.trim()) return true;
+  if (/href|class|system-path|main-menu|node\/\d+|data-[a-z-]+|button\.dataset|eventAction|eventLabel|querySelector|dataLayer|undefined/i.test(value)) {
+    return true;
+  }
+  const codeMarks = (value.match(/[{}[\]=<>;]/g) || []).length;
+  return codeMarks > 8 && codeMarks > value.length / 50;
+}
+
 function jdTextFor(job) {
   const fallback = "官网没有返回可读的 JD 正文，建议直接打开官网具体岗位查看完整原文。";
   const value = String(job.description || "").replace(/\s+/g, " ").trim();
-  if (!value || /href|class|system-path|main-menu|node\/\d+|data-[a-z-]+/i.test(value)) return fallback;
+  if (looksMessy(value)) return fallback;
   return value;
 }
 
@@ -166,21 +179,59 @@ function renderMeta(meta, jobs) {
   stats.sources.textContent = String(meta?.sourceCount || 0);
   stats.errors.textContent = String(meta?.errorCount || 0);
   timestamp.textContent = meta?.scannedAt ? `刷新于 ${formatTime(meta.scannedAt)} · ${meta.elapsedMs}ms` : "尚未刷新";
+  rankingNote.textContent = meta?.ranking ? `排序：${meta.ranking}` : "排序：匹配度优先，并穿插不同公司。";
   renderSources(meta);
 }
 
-function renderLoading() {
-  feed.innerHTML = '<div class="loading-state"><strong>正在抓取官网岗位</strong><span>不同外企官网速度不一样，通常需要几十秒。</span></div>';
+function estimateSeconds(params) {
+  if (params.get("company")) return 10;
+  if (params.get("priority") && params.get("priority") !== "all") return 28;
+  if (params.get("originRegion") && params.get("originRegion") !== "all") return 24;
+  return 55;
+}
+
+function stopProgress() {
+  window.clearInterval(progressTimer);
+  progressTimer = null;
+}
+
+function startProgress(totalSeconds) {
+  stopProgress();
+  const startedAt = Date.now();
+  const bar = feed.querySelector("[data-progress-bar]");
+  const text = feed.querySelector("[data-progress-text]");
+  const tick = () => {
+    const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+    const remaining = Math.max(3, totalSeconds - elapsed);
+    const ratio = Math.min(92, Math.round((elapsed / totalSeconds) * 100));
+    if (bar) bar.style.width = `${ratio}%`;
+    if (text) text.textContent = `预计还需 ${remaining} 秒左右`;
+  };
+  tick();
+  progressTimer = window.setInterval(tick, 1000);
+}
+
+function renderLoading(params) {
+  const seconds = estimateSeconds(params);
+  feed.innerHTML = `
+    <div class="loading-state">
+      <strong>正在抓取官网岗位</strong>
+      <span>正在访问招聘官网并清洗岗位内容，页面会在结果回来后自动更新。</span>
+      <div class="progress-track" aria-hidden="true"><div data-progress-bar></div></div>
+      <em data-progress-text>预计还需 ${seconds} 秒左右</em>
+    </div>
+  `;
+  startProgress(seconds);
 }
 
 async function loadJobs() {
   if (state.loading) return;
   setLoading(true);
   setStatus("loading", "正在抓取官网源");
-  renderLoading();
+  const params = getFilters();
+  renderLoading(params);
 
   try {
-    const params = getFilters();
     const response = await fetch(`/api/jobs?${params.toString()}`, { cache: "no-store" });
     if (!response.ok) throw new Error(`API ${response.status}`);
     const data = await response.json();
@@ -203,6 +254,7 @@ async function loadJobs() {
     setStatus("error", "未连接实时接口");
     console.warn(error);
   } finally {
+    stopProgress();
     setLoading(false);
   }
 }
