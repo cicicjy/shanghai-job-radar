@@ -25,6 +25,7 @@
       </a>
       <div class="header-actions">
         <span class="live-pill" data-live-pill>正在连接实时接口</span>
+        <button class="text-button" type="button" data-toggle-favorites>我的收藏 <span data-favorite-count>0</span></button>
         <a class="text-link" href="上海消费零售外企招聘官网清单.md">公司清单</a>
       </div>
     </header>
@@ -150,20 +151,6 @@
               <span>Consumer Insight</span>
             </div>
           </div>
-          <div class="monitor-box">
-            <h2>新岗位提醒</h2>
-            <p>GitHub Actions 每 15 分钟巡检一次；Vercel Cron 可接 KV 后运行。首次运行会先建缓存，后续只提醒新增岗位。</p>
-            <div class="monitor-list">
-              <span>Webhook</span>
-              <code>ALERT_WEBHOOK_URL</code>
-              <span>Email</span>
-              <code>RESEND_API_KEY</code>
-              <span>Telegram</span>
-              <code>TELEGRAM_BOT_TOKEN</code>
-              <span>微信</span>
-              <code>SERVER_CHAN_SEND_KEY</code>
-            </div>
-          </div>
           <div class="source-box">
             <h2>官网源状态</h2>
             <div class="source-list" data-source-list></div>
@@ -171,6 +158,16 @@
         </aside>
 
         <section class="feed-column" aria-label="岗位信息流">
+          <section class="favorites-section" data-favorites-section hidden>
+            <div class="section-heading">
+              <div>
+                <p class="kicker">Saved Jobs</p>
+                <h2>我的收藏</h2>
+              </div>
+              <button class="text-button" type="button" data-close-favorites>收起</button>
+            </div>
+            <div class="favorite-grid" data-favorites-list></div>
+          </section>
           <div class="feed-toolbar">
             <div>
               <p class="kicker">Live Feed</p>
@@ -243,6 +240,7 @@
           </details>
           <div class="job-actions">
             <a class="apply-link" data-apply target="_blank" rel="noreferrer">打开官网具体岗位</a>
+            <button class="favorite-button" type="button" data-favorite>收藏</button>
           </div>
         </div>
       </article>

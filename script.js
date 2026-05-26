@@ -12,6 +12,11 @@ const minScoreOutput = document.querySelector("[data-min-score]");
 const timestamp = document.querySelector("[data-timestamp]");
 const sourceList = document.querySelector("[data-source-list]");
 const rankingNote = document.querySelector("[data-ranking-note]");
+const favoriteCount = document.querySelector("[data-favorite-count]");
+const toggleFavoritesButton = document.querySelector("[data-toggle-favorites]");
+const closeFavoritesButton = document.querySelector("[data-close-favorites]");
+const favoritesSection = document.querySelector("[data-favorites-section]");
+const favoritesList = document.querySelector("[data-favorites-list]");
 const stats = {
   jobs: document.querySelector('[data-stat="jobs"]'),
   sources: document.querySelector('[data-stat="sources"]'),
@@ -21,6 +26,11 @@ const backTopButton = document.querySelector("[data-back-top]");
 
 let progressTimer = null;
 let activeSuggestionBox = null;
+let activeRequestId = 0;
+let jobsAbortController = null;
+
+const favoriteStorageKey = "cici-job-radar-favorites-v1";
+const savedJobs = new Map();
 
 const highlightTerms = [
   "consumer insight",
@@ -128,6 +138,59 @@ const suggestionSets = {
   ],
 };
 
+function readFavorites() {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(favoriteStorageKey) || "[]");
+    savedJobs.clear();
+    for (const item of Array.isArray(parsed) ? parsed : []) {
+      const key = item.favoriteKey || jobKey(item);
+      if (key) savedJobs.set(key, { ...item, favoriteKey: key });
+    }
+  } catch {
+    savedJobs.clear();
+  }
+}
+
+function writeFavorites() {
+  window.localStorage.setItem(favoriteStorageKey, JSON.stringify([...savedJobs.values()]));
+}
+
+function jobKey(job = {}) {
+  return String(job.id || [job.company, job.jobId, job.url, job.title].filter(Boolean).join("|"));
+}
+
+function refreshFavoriteButtons() {
+  for (const button of document.querySelectorAll("[data-favorite]")) {
+    const card = button.closest(".job-card");
+    const saved = card?.dataset.jobKey && savedJobs.has(card.dataset.jobKey);
+    button.classList.toggle("is-saved", Boolean(saved));
+    button.textContent = saved ? "已收藏" : "收藏";
+    button.setAttribute("aria-pressed", saved ? "true" : "false");
+  }
+  favoriteCount.textContent = String(savedJobs.size);
+}
+
+function findJobForFavorite(key) {
+  return state.jobs.find((job) => jobKey(job) === key) || savedJobs.get(key);
+}
+
+function toggleFavorite(key) {
+  const job = findJobForFavorite(key);
+  if (!job) return;
+  if (savedJobs.has(key)) {
+    savedJobs.delete(key);
+  } else {
+    savedJobs.set(key, {
+      ...job,
+      favoriteKey: key,
+      savedAt: new Date().toISOString(),
+    });
+  }
+  writeFavorites();
+  renderFavorites();
+  refreshFavoriteButtons();
+}
+
 function formatTime(value) {
   if (!value) return "尚未刷新";
   return new Intl.DateTimeFormat("zh-CN", {
@@ -184,7 +247,7 @@ function setupSuggestions() {
     if (!except) activeSuggestionBox = null;
   };
 
-  for (const [name, suggestions] of Object.entries(suggestionSets)) {
+  for (const name of Object.keys(suggestionSets)) {
     const input = form.elements[name];
     if (!input) continue;
     input.removeAttribute("list");
@@ -196,9 +259,11 @@ function setupSuggestions() {
     const render = () => {
       closeSuggestions(box);
       const keyword = input.value.trim().toLowerCase();
+      const suggestions = suggestionSets[name] || [];
+      const limit = name === "company" ? 120 : 10;
       const matches = suggestions
         .filter((item) => !keyword || item.toLowerCase().includes(keyword) || item.split(/\s+/).some((part) => part.toLowerCase().startsWith(keyword)))
-        .slice(0, 7);
+        .slice(0, limit);
       box.innerHTML = "";
       for (const item of matches) {
         const button = document.createElement("button");
@@ -236,6 +301,18 @@ function setupSuggestions() {
   document.addEventListener("pointerdown", (event) => {
     if (!form.contains(event.target)) closeSuggestions();
   });
+}
+
+async function loadCompanySuggestions() {
+  try {
+    const response = await fetch("/api/sources", { cache: "no-store" });
+    if (!response.ok) return;
+    const data = await response.json();
+    const companies = (data.sources || []).map((source) => source.label).filter(Boolean);
+    if (companies.length) suggestionSets.company = uniqueTextItems(companies);
+  } catch (error) {
+    console.warn("Company suggestions fallback in use", error);
+  }
 }
 
 function createChip(text) {
@@ -630,53 +707,94 @@ function jdTextFor(job) {
   return value;
 }
 
+function renderJobCard(job) {
+  const template = document.querySelector("#job-card-template");
+  const fragment = template.content.cloneNode(true);
+  const card = fragment.querySelector(".job-card");
+  const key = job.favoriteKey || jobKey(job);
+  const match = job.match || {};
+
+  card.dataset.jobKey = key;
+  fragment.querySelector("[data-score]").textContent = `${match.score ?? 0}%`;
+  fragment.querySelector("[data-score-label]").textContent = match.label || "匹配";
+  renderCompanyLogo(fragment, job);
+  const company = fragment.querySelector("[data-company]");
+  company.textContent = job.company || "未标注公司";
+  company.href = job.careersUrl || job.sourceUrl || job.url || "#";
+  fragment.querySelector("[data-origin]").textContent = `${job.originCountry || "未标注"}企业`;
+  fragment.querySelector("[data-industry]").textContent = job.industry || "未标注行业";
+  fragment.querySelector("[data-location]").textContent = job.location || "未标注地点";
+  const postedLabel = formatPostedDate(job.datePosted);
+  const title = fragment.querySelector("[data-title]");
+  title.textContent = job.title || "未命名岗位";
+  title.href = job.url || "#";
+  fragment.querySelector("[data-job-id]").textContent = job.jobId || "未抓到";
+  fragment.querySelector("[data-department]").textContent = job.department || "未明确";
+  fragment.querySelector("[data-experience]").textContent = match.experience?.label || "未明确";
+  fragment.querySelector("[data-date-posted]").textContent = postedLabel;
+  fragment.querySelector("[data-source-type]").textContent = sourceLabel(job.sourceType);
+  const skills = fragment.querySelector("[data-skills]");
+  tagItemsFor(job).forEach((skill) => skills.append(createChip(skill)));
+  const jdItems = jdSummaryItemsFor(job);
+  const matchPoints = simplifiedMatchPoints(job);
+  fragment.querySelector("[data-insight-match]").textContent = matchPoints.length ? matchPoints.join(" · ") : "岗位方向相关";
+  fragment.querySelector("[data-insight-summary]").textContent = conciseChineseSummary(jdItems);
+  renderJdSummary(fragment.querySelector("[data-jd]"), jdItems);
+  fragment.querySelector("[data-apply]").href = job.url || "#";
+  refreshFavoriteButtons();
+  return fragment;
+}
+
+function renderEmptyState(meta) {
+  const empty = document.createElement("div");
+  const title = document.createElement("strong");
+  const detail = document.createElement("span");
+  const company = form.elements.company.value.trim();
+
+  empty.className = "empty-state";
+  if (window.location.protocol === "file:") {
+    title.textContent = "暂时没有实时岗位";
+    detail.textContent = "如果你是直接打开本地 HTML 文件，浏览器无法调用实时抓取接口。请用本地服务或 Vercel 线上站访问；系统不会再用样例岗位冒充真实岗位。";
+  } else if (company && Number(meta?.sourceCount || 0) === 0) {
+    title.textContent = "没有找到这个公司源";
+    detail.textContent = `公司列表里暂时没有匹配“${company}”的官网源。可以换中文名、英文名或公司简称试试。`;
+  } else if (company) {
+    title.textContent = "这家公司暂时没有匹配岗位";
+    detail.textContent = `已扫描“${company}”的官网源，但当前关键词、方向和匹配度下没有抓到岗位。可以清空关键词或把最低匹配度调低后再刷新。`;
+  } else {
+    title.textContent = "当前筛选没有匹配岗位";
+    detail.textContent = "官网源已扫描完成，但这组条件下没有抓到岗位。可以放宽关键词、公司、方向或最低匹配度。";
+  }
+  empty.append(title, detail);
+  feed.append(empty);
+}
+
 function renderJobs(jobs, meta) {
   feed.innerHTML = "";
   if (!jobs.length) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state";
-    empty.innerHTML = "<strong>暂时没有实时岗位</strong><span>如果你是直接打开本地 HTML 文件，浏览器无法调用实时抓取接口。请用本地服务或 Vercel 线上站访问；系统不会再用样例岗位冒充真实岗位。</span>";
-    feed.append(empty);
+    renderEmptyState(meta);
     return;
   }
 
-  const template = document.querySelector("#job-card-template");
-  for (const job of jobs) {
-    const fragment = template.content.cloneNode(true);
-    const match = job.match || {};
-    fragment.querySelector("[data-score]").textContent = `${match.score ?? 0}%`;
-    fragment.querySelector("[data-score-label]").textContent = match.label || "匹配";
-    renderCompanyLogo(fragment, job);
-    const company = fragment.querySelector("[data-company]");
-    company.textContent = job.company || "未标注公司";
-    company.href = job.careersUrl || job.sourceUrl || job.url || "#";
-    fragment.querySelector("[data-origin]").textContent = `${job.originCountry || "未标注"}企业`;
-    fragment.querySelector("[data-industry]").textContent = job.industry || "未标注行业";
-    fragment.querySelector("[data-location]").textContent = job.location || "未标注地点";
-    const postedLabel = formatPostedDate(job.datePosted);
-    const title = fragment.querySelector("[data-title]");
-    title.textContent = job.title || "未命名岗位";
-    title.href = job.url || "#";
-    fragment.querySelector("[data-job-id]").textContent = job.jobId || "未抓到";
-    fragment.querySelector("[data-department]").textContent = job.department || "未明确";
-    fragment.querySelector("[data-experience]").textContent = match.experience?.label || "未明确";
-    fragment.querySelector("[data-date-posted]").textContent = postedLabel;
-    fragment.querySelector("[data-source-type]").textContent = sourceLabel(job.sourceType);
-    const skills = fragment.querySelector("[data-skills]");
-    tagItemsFor(job).forEach((skill) => skills.append(createChip(skill)));
-    const jdItems = jdSummaryItemsFor(job);
-    const matchPoints = simplifiedMatchPoints(job);
-    fragment.querySelector("[data-insight-match]").textContent = matchPoints.length ? matchPoints.join(" · ") : "岗位方向相关";
-    fragment.querySelector("[data-insight-summary]").textContent = conciseChineseSummary(jdItems);
-    renderJdSummary(fragment.querySelector("[data-jd]"), jdItems);
-    const apply = fragment.querySelector("[data-apply]");
-    apply.href = job.url || "#";
-    feed.append(fragment);
-  }
-
+  for (const job of jobs) feed.append(renderJobCard(job));
+  refreshFavoriteButtons();
   if (meta?.jobCount !== jobs.length) {
     console.info("Filtered jobs rendered", jobs.length, meta);
   }
+}
+
+function renderFavorites() {
+  favoritesList.innerHTML = "";
+  const favorites = [...savedJobs.values()].sort((a, b) => String(b.savedAt || "").localeCompare(String(a.savedAt || "")));
+  if (!favorites.length) {
+    const empty = document.createElement("div");
+    empty.className = "favorite-empty";
+    empty.textContent = "还没有收藏岗位。看到想回头看的岗位，点卡片底部的“收藏”就会出现在这里。";
+    favoritesList.append(empty);
+  } else {
+    for (const job of favorites) favoritesList.append(renderJobCard(job));
+  }
+  refreshFavoriteButtons();
 }
 
 function renderSources(meta) {
@@ -748,22 +866,30 @@ function renderLoading(params) {
 }
 
 async function loadJobs() {
-  if (state.loading) return;
+  const requestId = activeRequestId + 1;
+  activeRequestId = requestId;
+  if (jobsAbortController) jobsAbortController.abort();
+  jobsAbortController = new AbortController();
   setLoading(true);
   setStatus("loading", "正在抓取官网源");
   const params = getFilters();
   renderLoading(params);
 
   try {
-    const response = await fetch(`/api/jobs?${params.toString()}`, { cache: "no-store" });
+    const response = await fetch(`/api/jobs?${params.toString()}`, {
+      cache: "no-store",
+      signal: jobsAbortController.signal,
+    });
     if (!response.ok) throw new Error(`API ${response.status}`);
     const data = await response.json();
+    if (requestId !== activeRequestId) return;
     state.jobs = data.jobs || [];
     state.meta = data.meta || null;
     renderJobs(state.jobs, state.meta);
     renderMeta(state.meta, state.jobs);
     setStatus("live", state.jobs.length ? "已连接官网源" : "官网源已扫描");
   } catch (error) {
+    if (error.name === "AbortError" || requestId !== activeRequestId) return;
     state.meta = {
       scannedAt: new Date().toISOString(),
       sourceCount: 0,
@@ -777,8 +903,11 @@ async function loadJobs() {
     setStatus("error", "未连接实时接口");
     console.warn(error);
   } finally {
-    stopProgress();
-    setLoading(false);
+    if (requestId === activeRequestId) {
+      stopProgress();
+      setLoading(false);
+      jobsAbortController = null;
+    }
   }
 }
 
@@ -796,6 +925,26 @@ form.addEventListener("change", () => {
 });
 
 refreshButton.addEventListener("click", loadJobs);
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-favorite]");
+  if (!button) return;
+  const card = button.closest(".job-card");
+  if (!card?.dataset.jobKey) return;
+  toggleFavorite(card.dataset.jobKey);
+});
+
+toggleFavoritesButton.addEventListener("click", () => {
+  favoritesSection.hidden = !favoritesSection.hidden;
+  if (!favoritesSection.hidden) {
+    renderFavorites();
+    favoritesSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+});
+
+closeFavoritesButton.addEventListener("click", () => {
+  favoritesSection.hidden = true;
+});
 
 backTopButton.addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -818,4 +967,7 @@ function applyUrlFilters() {
 window.setInterval(loadJobs, 10 * 60 * 1000);
 applyUrlFilters();
 setupSuggestions();
+readFavorites();
+renderFavorites();
+loadCompanySuggestions();
 loadJobs();
