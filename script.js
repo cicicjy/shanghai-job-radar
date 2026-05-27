@@ -11,6 +11,7 @@ const livePill = document.querySelector("[data-live-pill]");
 const minScoreOutput = document.querySelector("[data-min-score]");
 const timestamp = document.querySelector("[data-timestamp]");
 const sourceList = document.querySelector("[data-source-list]");
+const sourceAudit = document.querySelector("[data-source-audit]");
 const rankingNote = document.querySelector("[data-ranking-note]");
 const favoriteCount = document.querySelector("[data-favorite-count]");
 const toggleFavoritesButton = document.querySelector("[data-toggle-favorites]");
@@ -218,6 +219,7 @@ function getFilters() {
   return new URLSearchParams({
     q: data.get("q") || "",
     company: data.get("company") || "",
+    sourceId: data.get("sourceId") || "",
     industry: data.get("industry") || "all",
     function: data.get("function") || "all",
     originRegion: data.get("originRegion") || "all",
@@ -258,20 +260,26 @@ function setupSuggestions() {
 
     const render = () => {
       closeSuggestions(box);
-      const keyword = input.value.trim().toLowerCase();
+      const keyword = normalizeSuggestionText(input.value);
       const suggestions = suggestionSets[name] || [];
       const limit = name === "company" ? 120 : 10;
       const matches = suggestions
-        .filter((item) => !keyword || item.toLowerCase().includes(keyword) || item.split(/\s+/).some((part) => part.toLowerCase().startsWith(keyword)))
+        .filter((item) => {
+          const text = suggestionSearchText(item);
+          return !keyword || text.includes(keyword) || compactSuggestionText(text).includes(compactSuggestionText(keyword));
+        })
         .slice(0, limit);
       box.innerHTML = "";
       for (const item of matches) {
         const button = document.createElement("button");
         button.type = "button";
-        button.textContent = item;
+        button.textContent = suggestionLabel(item);
         button.addEventListener("mousedown", (event) => {
           event.preventDefault();
-          input.value = item;
+          input.value = suggestionLabel(item);
+          if (name === "company" && form.elements.sourceId) {
+            form.elements.sourceId.value = item.id || "";
+          }
           box.hidden = true;
           activeSuggestionBox = null;
           loadJobs();
@@ -283,7 +291,10 @@ function setupSuggestions() {
     };
 
     input.addEventListener("focus", render);
-    input.addEventListener("input", render);
+    input.addEventListener("input", () => {
+      if (name === "company" && form.elements.sourceId) form.elements.sourceId.value = "";
+      render();
+    });
     input.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
         box.hidden = true;
@@ -308,11 +319,53 @@ async function loadCompanySuggestions() {
     const response = await fetch("/api/sources", { cache: "no-store" });
     if (!response.ok) return;
     const data = await response.json();
-    const companies = (data.sources || []).map((source) => source.label).filter(Boolean);
-    if (companies.length) suggestionSets.company = uniqueTextItems(companies);
+    const companies = (data.sources || [])
+      .map((source) => ({
+        id: source.id,
+        label: source.label,
+        aliases: source.aliases || [],
+        brands: source.brands || [],
+      }))
+      .filter((source) => source.label);
+    if (companies.length) suggestionSets.company = uniqueSuggestionItems(companies);
   } catch (error) {
     console.warn("Company suggestions fallback in use", error);
   }
+}
+
+function normalizeSuggestionText(value = "") {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/['’]/g, "")
+    .replace(/[^a-z0-9\u4e00-\u9fa5]+/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function compactSuggestionText(value = "") {
+  return normalizeSuggestionText(value).replace(/\s+/g, "");
+}
+
+function suggestionLabel(item) {
+  return typeof item === "string" ? item : item.label || "";
+}
+
+function suggestionSearchText(item) {
+  if (typeof item === "string") return normalizeSuggestionText(item);
+  return normalizeSuggestionText([item.label, item.id, ...(item.aliases || []), ...(item.brands || [])].filter(Boolean).join(" "));
+}
+
+function uniqueSuggestionItems(items) {
+  const seen = new Set();
+  return items.filter((item) => {
+    const key = item.id || normalizeSuggestionText(item.label || item);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function createChip(text) {
@@ -750,6 +803,7 @@ function renderEmptyState(meta) {
   const title = document.createElement("strong");
   const detail = document.createElement("span");
   const company = form.elements.company.value.trim();
+  const supplemental = meta?.supplementalSources || [];
 
   empty.className = "empty-state";
   if (window.location.protocol === "file:") {
@@ -766,6 +820,23 @@ function renderEmptyState(meta) {
     detail.textContent = "官网源已扫描完成，但这组条件下没有抓到岗位。可以放宽关键词、公司、方向或最低匹配度。";
   }
   empty.append(title, detail);
+  if (supplemental.length) {
+    const links = document.createElement("div");
+    links.className = "lead-links";
+    const leadTitle = document.createElement("b");
+    leadTitle.textContent = "补充线索";
+    links.append(leadTitle);
+    for (const lead of supplemental.slice(0, 6)) {
+      const link = document.createElement("a");
+      link.href = lead.url;
+      link.target = "_blank";
+      link.rel = "noreferrer";
+      link.textContent = lead.label;
+      link.title = lead.note || "补充渠道";
+      links.append(link);
+    }
+    empty.append(links);
+  }
   feed.append(empty);
 }
 
@@ -809,10 +880,52 @@ function renderSources(meta) {
     const label = document.createElement("strong");
     label.textContent = source.company;
     const count = document.createElement("span");
-    count.textContent = source.errors?.length ? "复查" : `${source.jobCount}`;
+    const audit = source.audit || {};
+    count.textContent = source.errors?.length ? "复查" : `沪 ${audit.shanghaiJobCount ?? source.jobCount}`;
+    row.title = `抓到 ${audit.capturedJobCount ?? source.jobCount} 个；上海 ${audit.shanghaiJobCount ?? 0} 个；>50% ${audit.matchGt50Count ?? 0} 个`;
     row.append(label, count);
     sourceList.append(row);
   }
+}
+
+function auditStatusLabel(status) {
+  const labels = {
+    ok: "可用",
+    blocked: "受限",
+    no_jobs_captured: "未解析",
+    no_shanghai_jobs: "无上海",
+    no_target_roles: "无目标方向",
+    below_min_score: "低于阈值",
+    fetch_error: "抓取失败",
+  };
+  return labels[status] || "待复查";
+}
+
+function renderSourceAudit(meta) {
+  if (!sourceAudit) return;
+  const sample = meta?.sourceAudit?.randomSample;
+  sourceAudit.innerHTML = "";
+  if (!sample) {
+    sourceAudit.hidden = true;
+    return;
+  }
+  sourceAudit.hidden = false;
+  const title = document.createElement("div");
+  title.className = "source-audit-title";
+  title.innerHTML = `<strong>抽查 agent</strong><span>${auditStatusLabel(sample.status)}</span>`;
+  const company = document.createElement("a");
+  company.href = sample.careersUrl || "#";
+  company.target = "_blank";
+  company.rel = "noreferrer";
+  company.textContent = sample.company;
+  const metrics = document.createElement("div");
+  metrics.className = "audit-metrics";
+  metrics.innerHTML = `
+    <span>抓到 <b>${sample.capturedJobCount || 0}</b></span>
+    <span>上海 <b>${sample.shanghaiJobCount || 0}</b></span>
+    <span>>50% <b>${sample.matchGtThresholdCount || 0}</b></span>
+  `;
+  sourceAudit.append(title, company, metrics);
 }
 
 function renderMeta(meta, jobs) {
@@ -821,6 +934,7 @@ function renderMeta(meta, jobs) {
   stats.errors.textContent = String(meta?.errorCount || 0);
   timestamp.textContent = meta?.scannedAt ? `刷新于 ${formatTime(meta.scannedAt)} · ${meta.elapsedMs}ms` : "尚未刷新";
   rankingNote.textContent = meta?.ranking ? `排序：${meta.ranking}` : "排序：匹配度优先，并穿插不同公司。";
+  renderSourceAudit(meta);
   renderSources(meta);
 }
 
@@ -956,7 +1070,7 @@ window.addEventListener("scroll", () => {
 
 function applyUrlFilters() {
   const params = new URLSearchParams(window.location.search);
-  for (const name of ["q", "company", "industry", "function", "originRegion", "postedWithin", "priority", "minScore"]) {
+  for (const name of ["q", "company", "sourceId", "industry", "function", "originRegion", "postedWithin", "priority", "minScore"]) {
     const value = params.get(name);
     const control = form.elements[name];
     if (value !== null && control) control.value = value;

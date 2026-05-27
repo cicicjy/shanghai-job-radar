@@ -5,7 +5,8 @@
   "description": "Realtime official-career monitor for Shanghai consumer, beauty, food and retail roles.",
   "scripts": {
     "start": "node server.js",
-    "monitor": "node scripts/monitor-jobs.js"
+    "monitor": "node scripts/monitor-jobs.js",
+    "audit": "node scripts/audit-sources.js"
   },
   "engines": {
     "node": ">=22"

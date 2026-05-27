@@ -19,7 +19,10 @@ module.exports = async function handler(req, res) {
     originRegion: source.originRegion,
     priority: source.priority,
     brands: source.brands || [],
+    aliases: source.aliases || [],
     careersUrl: source.careersUrl,
+    leadSources: source.leadSources || [],
+    wechatOfficialAccount: source.wechatOfficialAccount || "",
   }));
 
   res.statusCode = 200;

@@ -5,6 +5,7 @@ const path = require("path");
 const jobsHandler = require("./api/jobs");
 const checkJobsHandler = require("./api/check-jobs");
 const sourcesHandler = require("./api/sources");
+const auditSourcesHandler = require("./api/audit-sources");
 
 const root = __dirname;
 const port = Number(process.env.PORT || 3000);
@@ -56,6 +57,10 @@ const server = http.createServer(async (req, res) => {
   }
   if ((req.url || "").startsWith("/api/sources")) {
     await sourcesHandler(req, res);
+    return;
+  }
+  if ((req.url || "").startsWith("/api/audit-sources")) {
+    await auditSourcesHandler(req, res);
     return;
   }
   await serveStatic(req, res);

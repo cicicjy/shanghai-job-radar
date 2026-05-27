@@ -1,4 +1,4 @@
-const { fetchJobs } = require("../lib/scraper");
+const { auditSources } = require("../lib/audit");
 
 function readQuery(req) {
   const url = new URL(req.url || "/", "http://localhost");
@@ -17,19 +17,13 @@ module.exports = async function handler(req, res) {
 
   try {
     const query = readQuery(req);
-    const data = await fetchJobs({
-      query: query.q || "",
-      industry: query.industry || "all",
-      function: query.function || "all",
-      originRegion: query.originRegion || "all",
-      postedWithin: query.postedWithin || "all",
-      minScore: query.minScore || 35,
-      priority: query.priority || "all",
+    const data = await auditSources({
       company: query.company || "",
       sourceId: query.sourceId || "",
-      sourceLimit: Number(query.sourceLimit || process.env.SOURCE_LIMIT || 87),
+      sampleSize: query.sampleSize || 8,
+      minScore: query.minScore || 35,
       timeoutMs: Number(query.timeoutMs || process.env.SCRAPE_TIMEOUT_MS || 9000),
-      concurrency: Number(query.concurrency || process.env.SCRAPE_CONCURRENCY || 6),
+      concurrency: Number(query.concurrency || 3),
     });
     res.statusCode = 200;
     res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -37,14 +31,6 @@ module.exports = async function handler(req, res) {
   } catch (error) {
     res.statusCode = 500;
     res.setHeader("Content-Type", "application/json; charset=utf-8");
-    res.end(
-      JSON.stringify({
-        jobs: [],
-        meta: {
-          scannedAt: new Date().toISOString(),
-          error: error.message || String(error),
-        },
-      }),
-    );
+    res.end(JSON.stringify({ checkedAt: new Date().toISOString(), error: error.message || String(error), results: [] }));
   }
 };
